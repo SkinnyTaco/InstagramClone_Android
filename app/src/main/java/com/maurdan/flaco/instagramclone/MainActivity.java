@@ -1,5 +1,6 @@
 package com.maurdan.flaco.instagramclone;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -45,7 +46,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         logoImageView.setOnClickListener(this);
         backgroundLayout.setOnClickListener(this);
 
+        if (ParseUser.getCurrentUser() != null) {
+            showUserList();
+        }
+
         ParseAnalytics.trackAppOpenedInBackground(getIntent());
+    }
+
+    public void showUserList() {
+        Intent intent = new Intent(getApplicationContext(), UserListActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -95,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void done(ParseException e) {
                         if (e == null) {
                             Log.i("Signup", "Success");
+                            showUserList();
                         } else {
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
@@ -106,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void done(ParseUser user, ParseException e) {
                         if (user != null) {
                             Log.i("Login", "Successful");
+                            showUserList();
                         } else {
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
