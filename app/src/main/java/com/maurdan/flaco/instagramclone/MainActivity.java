@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,9 +22,10 @@ import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 import com.parse.LogInCallback;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnKeyListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     Boolean signUpModeActive = true;
+    Button signUpButton;
     TextView loginTextView;
     EditText userNameEditText;
     EditText passwordEditText;
@@ -36,15 +38,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setTitle("My Instagram Clone");
+
         loginTextView = findViewById(R.id.loginTextView);
         userNameEditText = findViewById(R.id.userNameEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         logoImageView = findViewById(R.id.logoImageView);
         backgroundLayout = findViewById(R.id.backgroundLayout);
+        signUpButton = findViewById(R.id.signUpButton);
 
         loginTextView.setOnClickListener(this);
         logoImageView.setOnClickListener(this);
         backgroundLayout.setOnClickListener(this);
+        passwordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    signUpClicked(v);
+                }
+
+                return false;
+            }
+        });
 
         if (ParseUser.getCurrentUser() != null) {
             showUserList();
@@ -58,21 +73,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(intent);
     }
 
-    @Override
-    public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
-
-        if (keyCode == KeyEvent.KEYCODE_ENTER && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-            signUpClicked(view);
-        }
-
-        return false;
-    }
+//    @Override
+//    public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
+//        Log.i("Key Pressed", keyCode + " " + keyEvent);
+//        if (keyCode == KeyEvent.KEYCODE_ENTER && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+//            signUpClicked(view);
+//        }
+//
+//        return false;
+//    }
 
     @Override
     public void onClick(View view) {
         if(view.getId() == R.id.loginTextView) {
-
-            Button signUpButton = findViewById(R.id.signUpButton);
 
             if (signUpModeActive) {
                 signUpModeActive = false;
@@ -85,9 +98,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
         } else if (view.getId() == R.id.logoImageView || view.getId() == R.id.backgroundLayout) {
-            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            View currentFocusView = this.getCurrentFocus();
+            if (currentFocusView == null) {
+                signUpButton.requestFocus();
+                Log.i("Focus", "Reset");
+            }
+            if (currentFocusView != null) {
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            }
         }
+    }
+
+    public void clearLoginFields() {
+        passwordEditText.setText("");
+        userNameEditText.setText("");
     }
 
     public void signUpClicked(View view) {
@@ -105,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void done(ParseException e) {
                         if (e == null) {
                             Log.i("Signup", "Success");
+                            clearLoginFields();
                             showUserList();
                         } else {
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -117,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void done(ParseUser user, ParseException e) {
                         if (user != null) {
                             Log.i("Login", "Successful");
+                            clearLoginFields();
                             showUserList();
                         } else {
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
